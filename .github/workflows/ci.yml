@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: windows-2025-vs2026   # VS2026 ufficiale
+    runs-on: windows-2022   # VS2022 stabile
 
     steps:
       - name: Checkout
@@ -19,59 +19,14 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # Installa il workload Office per avere gli strumenti VSTO (opzionale per mage.exe)
-      - name: Install Office workload
-        run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify `
-            --productId Microsoft.VisualStudio.Product.Enterprise `
-            --add Microsoft.VisualStudio.Workload.OfficeBuildTools `
-            --includeRecommended `
-            --includeOptional `
-            --quiet `
-            --norestart
+      - name: Install VSTO Build Tools (VS2022 + Office workload)
+        run: choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.OfficeBuildTools --includeRecommended" --yes
 
       - name: Restore NuGet packages
         run: nuget restore OfficeFileGuard_OS.sln
 
-      # Build SENZA firma con VSTO_DISABLE_VERIFICATION=true per evitare il task problematico
       - name: Build solution
-        run: |
-          & "C:\Program Files\Microsoft Visual Studio\18\Enterprise\MSBuild\Current\Bin\MSBuild.exe" OfficeFileGuard_OS.sln /p:Configuration=Release /p:Platform=x64 /p:SignManifests=false /p:SignAssembly=false /p:VSTO_DISABLE_VERIFICATION=true
-
-      # Firma manuale del manifesto VSTO con mage.exe (opzionale, se vuoi la firma)
-      # Commenta questa sezione se la firma non è necessaria per i test
-      - name: Sign VSTO manifest with mage.exe (optional)
-        run: |
-          $certPath = "src\OutlookFileGuard_addin\OutlookFileGuard_addin_TemporaryKey.pfx"
-          $vstoPath = "src\OutlookFileGuard_addin\bin\x64\Release\OutlookFileGuard_addin.vsto"
-          $manifestPath = "src\OutlookFileGuard_addin\bin\x64\Release\OutlookFileGuard_addin.dll.manifest"
-
-          if (-not (Test-Path $certPath)) {
-            Write-Host "Certificate not found, skipping signing"
-            exit 0
-          }
-
-          $magePath = "C:\Program Files\Microsoft Visual Studio\18\Enterprise\Common7\IDE\CommonExtensions\Microsoft\Client\mage.exe"
-          if (-not (Test-Path $magePath)) {
-            $magePath = Get-ChildItem -Path "C:\Program Files\Microsoft Visual Studio\18\Enterprise" -Filter "mage.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
-          }
-
-          if (-not $magePath) {
-            Write-Host "mage.exe not found, skipping signing"
-            exit 0
-          }
-
-          Write-Host "Using mage.exe: $magePath"
-
-          if (Test-Path $vstoPath) {
-            & $magePath -Update -CertFile $certPath -Password "" "$vstoPath"
-            Write-Host "Signed: $vstoPath"
-          }
-
-          if (Test-Path $manifestPath) {
-            & $magePath -Update -CertFile $certPath -Password "" "$manifestPath"
-            Write-Host "Signed: $manifestPath"
-          }
+        run: msbuild OfficeFileGuard_OS.sln /p:Configuration=Release /p:Platform=x64 /p:SignManifests=false /p:SignAssembly=false
 
       - name: Run tests
         run: dotnet test tests/CrocoOfficeFileGuard.Core.Tests/CrocoOfficeFileGuard.Core.Tests.csproj --configuration Release --verbosity normal
