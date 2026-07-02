@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: windows-2022   # VS2022 stabile
+    runs-on: windows-2022
 
     steps:
       - name: Checkout
@@ -19,7 +19,10 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Install VSTO Build Tools (VS2022 + Office workload)
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Install VSTO Build Tools
         run: choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.OfficeBuildTools --includeRecommended" --yes
 
       - name: Restore NuGet packages
