@@ -35,6 +35,18 @@ OfficeFileGuard operates entirely offline. The application only reads the metada
 
 ---
 
+## Project History
+
+OfficeFileGuard was originally developed as proprietary software.
+
+Starting with version **1.0.0**, the project is released as open source under the Apache License 2.0.
+
+Although this GitHub repository is new, OfficeFileGuard is an established project that has been actively developed and publicly distributed prior to its open-source release.
+
+Previous versions have been made available to end users through WinGet and via the official OfficeFileGuard website.
+
+---
+
 ## Repository Contents
 
 The solution contains the following projects.
