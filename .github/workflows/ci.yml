@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v5
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -22,14 +22,14 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v3
 
-      - name: Install VSTO Build Tools
-        run: choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.OfficeBuildTools --includeRecommended" --yes
-
       - name: Restore NuGet packages
         run: nuget restore OfficeFileGuard_OS.sln
 
+      - name: Install VSTO Build Tools
+        run: choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.OfficeBuildTools --includeRecommended" --yes
+
       - name: Build solution
-        run: msbuild OfficeFileGuard_OS.sln /p:Configuration=Release /p:Platform=x64 /p:SignManifests=false /p:SignAssembly=false
+        run: msbuild OfficeFileGuard_OS.sln /p:Configuration=Release /p:Platform=x64 /p:SignManifests=true /p:SignAssembly=true
 
       - name: Run tests
         run: dotnet test tests/CrocoOfficeFileGuard.Core.Tests/CrocoOfficeFileGuard.Core.Tests.csproj --configuration Release --verbosity normal
