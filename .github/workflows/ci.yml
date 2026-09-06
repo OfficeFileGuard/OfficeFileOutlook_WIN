@@ -24,13 +24,13 @@ jobs:
         uses: microsoft/setup-msbuild@v3
 
       - name: Restore NuGet packages
-        run: nuget restore OfficeFileGuard_OS.sln
+        run: nuget restore OfficeFileOutlook_WIN.sln
 
       - name: Install VSTO Build Tools
         run: choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.OfficeBuildTools --includeRecommended" --yes
 
       - name: Build solution
-        run: msbuild OfficeFileGuard_OS.sln /p:Configuration=Release /p:Platform=x64 /p:SignManifests=true /p:SignAssembly=true
+        run: msbuild OfficeFileOutlook_WIN.sln /p:Configuration=Release /p:Platform=x64 /p:SignManifests=true /p:SignAssembly=true
 
       - name: Run tests
         run: dotnet test tests/CrocoOfficeFileGuard.Core.Tests/CrocoOfficeFileGuard.Core.Tests.csproj --configuration Release --verbosity normal

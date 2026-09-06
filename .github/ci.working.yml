@@ -1,0 +1,55 @@
+name: CI - Build, Test and Package
+
+on:     # trigger
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest   #VM windows-latest to use
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Restore NuGet packages
+        run: nuget restore OfficeFileGuard_OS.sln
+
+        # IIIINNNNPPPIIIUUU
+      - name: Install VSTO Hosting Tools
+        run: |
+          dotnet add src/OutlookFileGuard_addin/OutlookFileGuard_addin.csproj package Microsoft.VisualStudio.Tools.Applications
+          dotnet restore src/OutlookFileGuard_addin/OutlookFileGuard_addin.csproj
+
+      - name: Install VSTO Build Tools
+        run: choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.OfficeBuildTools --includeRecommended" --yes
+
+      # TODO: Poi firmare con certificato ufficiale 
+      - name: Build solution
+        run: msbuild OfficeFileGuard_OS.sln /p:Configuration=Release /p:Platform=x64 /p:SignManifests=true /p:SignAssembly=true
+      
+      - name: Run tests
+        run: dotnet test tests/CrocoOfficeFileGuard.Core.Tests/CrocoOfficeFileGuard.Core.Tests.csproj --configuration Release --verbosity normal
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes
+
+      - name: Build installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\setup.iss
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OfficeFileGuard-Setup
+          path: installer\output\*.exe

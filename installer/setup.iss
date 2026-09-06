@@ -11,7 +11,7 @@ VersionInfoVersion={#MyAppVersion}
 VersionInfoDescription={#MyAppName} Installer
 VersionInfoProductName={#MyAppName}
 ;VersionInfoCopyright=Copyright © 2026 BlueCrocodile
-;AppId={{B8E5A5F4-72C3-4D5F-9C8E-1A2B3C4D5E6F}
+AppId={{B8E5A5F4-72C3-4D5F-9C8E-1A2B3C4D5E6F}
 ;DisableDirPage=auto
 ;UsePreviousAppDir=yes
 ; fine nuove aggiunte
@@ -23,7 +23,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir={#SourceBase}\installer\output
-OutputBaseFilename=OfficeFileGuard_Setup
+OutputBaseFilename=OfficeFileGuard_Setup_v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -121,11 +121,10 @@ Root: HKLM; Subkey: "Software\Microsoft\Office\Outlook\Addins\OutlookFileGuard_a
 ; Riavvia Explorer dopo l'installazione per caricare la shell extension
 ;Filename: "{sys}\taskkill.exe"; Parameters: "/f /im explorer.exe"; Flags: waituntilterminated
 ;Filename: "{win}\explorer.exe"; Flags: nowait runasoriginaluser
-
 ;Filename: "{cmd}"; Parameters: "/c taskkill /f /im explorer.exe & ping 127.0.0.1 -n 3 >nul & start explorer.exe"; Flags: runhidden
-
 ; Mostra Quick Start al termine dell'installazione
 ;Filename: "{app}\QuickStart.txt"; Description: "Show QuickStart"; Flags: postinstall shellexec skipifsilent
+;Filename: "https://www.officefileguard.com/howtoinstall.html"; Description: "Using Outlook on the web or New Outlook? View required plugin setup"; Flags: postinstall shellexec skipifsilent
 
 [UninstallRun]
 ; Riavvia Explorer dopo la disinstallazione
@@ -145,10 +144,24 @@ begin
     Result := Release >= 528040; // 528040 = .NET 4.8
 end;
 
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstallString: String;
+begin
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#emit SetupSetting("AppId")}_is1');
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
+end;
+
 function InitializeSetup(): Boolean;
 var
   Msg: String;
   MissingComponents: Boolean;
+  UninstallString: String;
+  ResultCode: Integer;
 begin
   Result := True;
   MissingComponents := False;
@@ -165,11 +178,26 @@ begin
   begin
     Msg := Msg + 'Please install the missing components and then run this installer again.';
     MsgBox(Msg, mbError, MB_OK);
-    Result := False; // blocca l'installazione
+    Result := False;
+    Exit;
+  end;
+
+  UninstallString := GetUninstallString();
+  if UninstallString <> '' then
+  begin
+    if MsgBox('OfficeFileGuard is already installed.' + #13#10 + #13#10 + 'Do you want to remove the existing version and reinstall?', mbConfirmation, MB_OKCANCEL) = IDOK then
+    begin
+      UninstallString := RemoveQuotes(UninstallString);
+      Exec(UninstallString, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
+    end
+    else
+    begin
+      Result := False;
+    end;
   end;
 end;
 
-[Code]
+
 function NeedRestart(): Boolean;
 begin
   Result := True;
@@ -190,3 +218,16 @@ begin
   end;
 end;
 *)
+
+
+// Visualizza una finestra che propone la visualizzazione delle istruzioni per aggiungere il manifest in caso di OWA
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  ResultCode: Integer;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    if TaskDialogMsgBox('Using Outlook on the web or New Outlook?', 'You must also install the required plugin.', mbConfirmation, MB_YESNO, ['View instructions', 'No thanks'], IDYES) = IDYES then
+      ShellExecAsOriginalUser('open', 'https://www.officefileguard.com/howtoinstall.html#owa-addin', '', '', SW_SHOWNORMAL, ewNoWait, ResultCode);
+  end;
+end;
