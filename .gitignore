@@ -6,8 +6,7 @@
 OfficeFileGuard/
 
 # Installer build output
-installer/output/
-installer/installer/output/
+installer/installer/
 
 # Installer generati
 OfficeFileGuard_Setup.exe
