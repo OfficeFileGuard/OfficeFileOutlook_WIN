@@ -23,7 +23,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir={#SourceBase}\installer\output
-OutputBaseFilename=OfficeFileGuard_Setup_v{#MyAppVersion}
+OutputBaseFilename=OfficeFileGuard_Setup
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -225,7 +225,7 @@ procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;
 begin
-  if CurStep = ssPostInstall then
+  if (CurStep = ssPostInstall) and (not WizardSilent()) then   // in caso di installazione silent (winget) non appare la finestra
   begin
     if TaskDialogMsgBox('Using Outlook on the web or New Outlook?', 'You must also install the required plugin.', mbConfirmation, MB_YESNO, ['View instructions', 'No thanks'], IDYES) = IDYES then
       ShellExecAsOriginalUser('open', 'https://www.officefileguard.com/howtoinstall.html#owa-addin', '', '', SW_SHOWNORMAL, ewNoWait, ResultCode);
