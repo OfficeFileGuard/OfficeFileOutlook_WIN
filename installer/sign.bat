@@ -21,19 +21,41 @@ echo Signing Shell Extension...
 %SIGNTOOL% sign /n %CERT_NAME% /fd SHA256 /tr %TS_URL% /td SHA256 "%BASE%\CrocoIconOverlayShellExtension\bin\x64\Release\CrocoIconOverlayShellExtension.dll"
 if errorlevel 1 goto :error
 
+echo Signing OfficeFileGuard.exe...
+%SIGNTOOL% sign /n %CERT_NAME% /fd SHA256 /tr %TS_URL% /td SHA256 "%BASE%\OfficeFileGuard.App\bin\Release\OfficeFileGuard.exe"
+if errorlevel 1 goto :error
+
+echo Signing OfficeFileGuard.Whitelist.dll...
+%SIGNTOOL% sign /n %CERT_NAME% /fd SHA256 /tr %TS_URL% /td SHA256 "%BASE%\OfficeFileGuard.Whitelist\bin\Release\OfficeFileGuard.Whitelist.dll"
+if errorlevel 1 goto :error
+
 
 REM ── FASE 2: build dell'installer con Inno Setup (nessuna firma automatica, lo .iss non ha SignTool=) ──
 
 echo Building installer with Inno Setup...
-%ISCC% "%~dp0setup.iss"
+%ISCC% "%~dp0setup_whitelist.iss"
 if errorlevel 1 goto :error
 
 
 REM ── FASE 3: firma il setup.exe risultante─
 
 echo Signing final installer...
-%SIGNTOOL% sign /n %CERT_NAME% /fd SHA256 /tr %TS_URL% /td SHA256 "%BASE%\installer\output\OfficeFileGuard_Setup_v2.0.0.exe"
+%SIGNTOOL% sign /n %CERT_NAME% /fd SHA256 /tr %TS_URL% /td SHA256 "%BASE%\installer\output\OfficeFileGuard_Setup.exe"
 if errorlevel 1 goto :error
+
+
+REM ── FASE 4: crea lo zip di distribuzione con la versione nel nome ──
+
+for /f "tokens=3" %%V in ('findstr /b /c:"#define MyAppVersion" "%~dp0setup_whitelist.iss"') do set APP_VERSION=%%~V
+if not defined APP_VERSION (
+    echo ERRORE: versione non trovata in setup_whitelist.iss
+    goto :error
+)
+
+echo Creating zip v%APP_VERSION%...
+powershell -NoProfile -Command "Compress-Archive -Path '%BASE%\installer\output\OfficeFileGuard_Setup.exe' -DestinationPath '%BASE%\installer\output\OfficeFileGuard_Setup_v%APP_VERSION%.zip' -Force"
+if errorlevel 1 goto :error
+
 
 echo.
 echo Signing complete!
