@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -18,12 +17,7 @@ namespace OfficeFileGuard.App
         public int BorderRadius
         {
             get => borderRadius;
-            set
-            {
-                borderRadius = Math.Max(0, value);
-                AggiornaForma();
-                Invalidate();
-            }
+            set { borderRadius = Math.Max(0, value); Invalidate(); }
         }
 
         [Category("Aspetto")]
@@ -31,11 +25,7 @@ namespace OfficeFileGuard.App
         public int BorderSize
         {
             get => borderSize;
-            set
-            {
-                borderSize = Math.Max(0, value);
-                Invalidate();
-            }
+            set { borderSize = Math.Max(0, value); Invalidate(); }
         }
 
         [Category("Aspetto")]
@@ -43,17 +33,11 @@ namespace OfficeFileGuard.App
         public Color BorderColor
         {
             get => borderColor;
-            set
-            {
-                borderColor = value;
-                Invalidate();
-            }
+            set { borderColor = value; Invalidate(); }
         }
 
         public RoundedPanel()
         {
-            DoubleBuffered = true;
-            ResizeRedraw = true;
             BorderStyle = BorderStyle.None;
 
             SetStyle(
@@ -62,104 +46,76 @@ namespace OfficeFileGuard.App
                 ControlStyles.OptimizedDoubleBuffer |
                 ControlStyles.ResizeRedraw,
                 true);
-
-            AggiornaForma();
         }
 
-        private GraphicsPath CreaPercorso(
-            Rectangle rettangolo, int raggio)
+        private static GraphicsPath CreaPercorso(RectangleF r, float raggio)
         {
             GraphicsPath path = new GraphicsPath();
 
-            int d = Math.Min(
-                raggio * 2,
-                Math.Min(rettangolo.Width, rettangolo.Height));
+            float d = Math.Min(raggio * 2f, Math.Min(r.Width, r.Height));
 
-            if (d <= 0)
+            if (d <= 0f)
             {
-                path.AddRectangle(rettangolo);
+                path.AddRectangle(r);
                 return path;
             }
 
-            path.AddArc(rettangolo.X, rettangolo.Y, d, d, 180, 90);
-            path.AddArc(rettangolo.Right - d, rettangolo.Y, d, d, 270, 90);
-            path.AddArc(rettangolo.Right - d, rettangolo.Bottom - d, d, d, 0, 90);
-            path.AddArc(rettangolo.X, rettangolo.Bottom - d, d, d, 90, 90);
-
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
             path.CloseFigure();
             return path;
         }
 
-        private void AggiornaForma()
+        // Se cambia il colore del contenitore, bisogna ridisegnare.
+        protected override void OnParentBackColorChanged(EventArgs e)
         {
-            if (Width <= 0 || Height <= 0)
-                return;
-
-            using (GraphicsPath path = CreaPercorso(new Rectangle(0, 0, Width, Height), borderRadius))
-            {
-                Region nuovaRegione = new Region(path);
-                Region vecchiaRegione = Region;
-                Region = nuovaRegione;
-                vecchiaRegione?.Dispose();
-            }
-        }
-
-        protected override void OnResize(EventArgs e)
-        {
-            base.OnResize(e);
-            AggiornaForma();
+            base.OnParentBackColorChanged(e);
+            Invalidate();
         }
 
         protected override void OnPaintBackground(PaintEventArgs e)
-        { 
-            // per evitare il disegno dello sfondo rettangolare predefinito, lo sfondo viene dipinto in OnPaint.
+        {
+            // Volutamente vuoto: lo sfondo viene dipinto interamente in OnPaint.
         }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             Graphics g = e.Graphics;
 
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-            Rectangle rettangolo = ClientRectangle;
-
-            if (rettangolo.Width <= 0 || rettangolo.Height <= 0)
+            if (Width <= 0 || Height <= 0)
                 return;
 
-            // Disegna lo sfondo con angoli arrotondati.
-            using (GraphicsPath pathSfondo =
-                CreaPercorso(rettangolo, borderRadius))
-            using (SolidBrush pennello = new SolidBrush(BackColor))
+            // 1) Pulisco TUTTO con il colore del contenitore (niente nero sotto l'antialiasing).
+            Color coloreEsterno = Parent?.BackColor ?? SystemColors.Control;
+            g.Clear(coloreEsterno);
+
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            RectangleF esterno = new RectangleF(0, 0, Width, Height);
+            bool haBordo = borderSize > 0 && borderColor != Color.Transparent;
+
+            // 2) Se c'è il bordo, riempio la forma esterna con il colore del bordo.
+            if (haBordo)
             {
-                g.FillPath(pennello, pathSfondo);
+                using (GraphicsPath pathEsterno = CreaPercorso(esterno, borderRadius))
+                using (SolidBrush brushBordo = new SolidBrush(borderColor))
+                {
+                    g.FillPath(brushBordo, pathEsterno);
+                }
             }
 
-            // Disegna il bordo solo se richiesto.
-            if (borderSize > 0 && borderColor != Color.Transparent)
+            // 3) Forma interna (ridotta dello spessore del bordo) con il colore di sfondo.
+            float s = haBordo ? borderSize : 0f;
+            RectangleF interno = new RectangleF(s, s, Width - 2f * s, Height - 2f * s);
+
+            if (interno.Width > 0 && interno.Height > 0)
             {
-                float inset = borderSize / 2f;
-
-                RectangleF rettangoloBordo = new RectangleF(
-                    inset,
-                    inset,
-                    Width - borderSize - 1f,
-                    Height - borderSize - 1f);
-
-                if (rettangoloBordo.Width > 0 &&
-                    rettangoloBordo.Height > 0)
+                using (GraphicsPath pathInterno = CreaPercorso(interno, Math.Max(0f, borderRadius - s)))
+                using (SolidBrush brushSfondo = new SolidBrush(BackColor))
                 {
-                    int raggioBordo = Math.Max(
-                        0, borderRadius - (int)Math.Ceiling(inset));
-
-                    using (GraphicsPath pathBordo =
-                        CreaPercorso(
-                            Rectangle.Round(rettangoloBordo),
-                            raggioBordo))
-                    using (Pen pen = new Pen(borderColor, borderSize))
-                    {
-                        pen.Alignment = PenAlignment.Center;
-                        g.DrawPath(pen, pathBordo);
-                    }
+                    g.FillPath(brushSfondo, pathInterno);
                 }
             }
         }

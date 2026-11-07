@@ -250,6 +250,10 @@
       <Project>{68081d4c-33c2-454e-9f0b-b8e1ea561b04}</Project>
       <Name>CrocoOfficeFileGuard.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\OfficeFileGuard.Whitelist\OfficeFileGuard.Whitelist.csproj">
+      <Project>{694c206d-3306-41d6-a3d7-669ece7f7179}</Project>
+      <Name>OfficeFileGuard.Whitelist</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -294,7 +298,7 @@
       <FlavorProperties GUID="{BAA0C2D2-18E2-41B9-852F-F413020CAA33}">
         <ProjectProperties HostName="Outlook" HostPackage="{29A7B9D7-A7F1-4328-8EF0-6B2D1A56B2C1}" OfficeVersion="15.0" VstxVersion="4.0" ApplicationType="Outlook" Language="cs" TemplatesPath="" DebugInfoExeName="#Software\Microsoft\Office\16.0\Outlook\InstallRoot\Path#outlook.exe" AddItemTemplatesGuid="{A58A78EB-1C92-4DDD-80CF-E8BD872ABFC4}" />
         <Host Name="Outlook" GeneratedCodeNamespace="OutlookFileGuard_addin" PublishedHash="69C324AB27932AA2FBF2B7EA72250886FF164DE6" IconIndex="0">
-          <HostItem Name="ThisAddIn" Code="ThisAddIn.cs" CanonicalName="AddIn" CanActivate="false" IconIndex="1" Blueprint="ThisAddIn.Designer.xml" GeneratedCode="ThisAddIn.Designer.cs" PublishedHash="0FC3ABC7ED7548B76814CFFA868868FD108A0A45" />
+          <HostItem Name="ThisAddIn" Code="ThisAddIn.cs" CanonicalName="AddIn" PublishedHash="0FC3ABC7ED7548B76814CFFA868868FD108A0A45" CanActivate="false" IconIndex="1" Blueprint="ThisAddIn.Designer.xml" GeneratedCode="ThisAddIn.Designer.cs" />
         </Host>
       </FlavorProperties>
     </VisualStudio>

@@ -116,8 +116,7 @@
             this.SettingsPanel.BackColor = System.Drawing.Color.White;
             this.SettingsPanel.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(238)))), ((int)(((byte)(245)))), ((int)(((byte)(253)))));
             this.SettingsPanel.BorderRadius = 20;
-            this.SettingsPanel.BorderSize = 2;
-            this.SettingsPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.SettingsPanel.BorderSize = 3;
             this.SettingsPanel.Controls.Add(this.roundedPanel1);
             this.SettingsPanel.Controls.Add(this.label5);
             this.SettingsPanel.Controls.Add(this.OWAExplanationLabel);
@@ -284,29 +283,30 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Controls.Add(this.deletewhitelistRoundedPanel, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.editwhitelistRoundedPanel, 0, 0);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(569, 3);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(569, 0);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 0, 3, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(372, 391);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(372, 397);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
             // deletewhitelistRoundedPanel
             // 
             this.deletewhitelistRoundedPanel.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.deletewhitelistRoundedPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(252)))), ((int)(((byte)(245)))), ((int)(((byte)(247)))));
-            this.deletewhitelistRoundedPanel.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(252)))), ((int)(((byte)(246)))), ((int)(((byte)(246)))));
+            this.deletewhitelistRoundedPanel.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(233)))), ((int)(((byte)(20)))), ((int)(((byte)(28)))));
             this.deletewhitelistRoundedPanel.BorderRadius = 20;
-            this.deletewhitelistRoundedPanel.BorderSize = 2;
-            this.deletewhitelistRoundedPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.deletewhitelistRoundedPanel.BorderSize = 1;
             this.deletewhitelistRoundedPanel.Controls.Add(this.deletewhitelistlogoLabel);
             this.deletewhitelistRoundedPanel.Controls.Add(this.deletewhitelistButton);
             this.deletewhitelistRoundedPanel.Controls.Add(this.deletewhitelistLabel);
             this.deletewhitelistRoundedPanel.Controls.Add(this.deletewhitelistHeadLabel);
-            this.deletewhitelistRoundedPanel.Location = new System.Drawing.Point(12, 209);
+            this.deletewhitelistRoundedPanel.Location = new System.Drawing.Point(12, 210);
+            this.deletewhitelistRoundedPanel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 0);
             this.deletewhitelistRoundedPanel.Name = "deletewhitelistRoundedPanel";
-            this.deletewhitelistRoundedPanel.Size = new System.Drawing.Size(347, 167);
+            this.deletewhitelistRoundedPanel.Size = new System.Drawing.Size(347, 178);
             this.deletewhitelistRoundedPanel.TabIndex = 1;
             // 
             // deletewhitelistlogoLabel
@@ -357,19 +357,18 @@
             // 
             // editwhitelistRoundedPanel
             // 
-            this.editwhitelistRoundedPanel.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.editwhitelistRoundedPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(249)))), ((int)(((byte)(247)))));
             this.editwhitelistRoundedPanel.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(41)))), ((int)(((byte)(180)))), ((int)(((byte)(142)))));
             this.editwhitelistRoundedPanel.BorderRadius = 20;
             this.editwhitelistRoundedPanel.BorderSize = 1;
-            this.editwhitelistRoundedPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.editwhitelistRoundedPanel.Controls.Add(this.editwhitelistlogoLabel);
             this.editwhitelistRoundedPanel.Controls.Add(this.editwhitelistButton);
             this.editwhitelistRoundedPanel.Controls.Add(this.editwhitelistLabel);
             this.editwhitelistRoundedPanel.Controls.Add(this.EditwhitelistHeadLabel);
-            this.editwhitelistRoundedPanel.Location = new System.Drawing.Point(12, 14);
+            this.editwhitelistRoundedPanel.Location = new System.Drawing.Point(10, 3);
+            this.editwhitelistRoundedPanel.Margin = new System.Windows.Forms.Padding(10, 3, 3, 3);
             this.editwhitelistRoundedPanel.Name = "editwhitelistRoundedPanel";
-            this.editwhitelistRoundedPanel.Size = new System.Drawing.Size(347, 167);
+            this.editwhitelistRoundedPanel.Size = new System.Drawing.Size(347, 181);
             this.editwhitelistRoundedPanel.TabIndex = 0;
             // 
             // editwhitelistlogoLabel
@@ -551,6 +550,7 @@
             // 
             // panelFooter3
             // 
+            this.panelFooter3.BackColor = System.Drawing.Color.White;
             this.panelFooter3.Controls.Add(this.linkLabel3);
             this.panelFooter3.Controls.Add(this.TitleFooter3);
             this.panelFooter3.Controls.Add(this.label3);
@@ -598,6 +598,7 @@
             // 
             // panelFooter2
             // 
+            this.panelFooter2.BackColor = System.Drawing.Color.White;
             this.panelFooter2.Controls.Add(this.linkLabel2);
             this.panelFooter2.Controls.Add(this.TitleFooter2);
             this.panelFooter2.Controls.Add(this.label2);
@@ -645,7 +646,7 @@
             // 
             // panelFooter1
             // 
-            this.panelFooter1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(238)))), ((int)(((byte)(245)))), ((int)(((byte)(253)))));
+            this.panelFooter1.BackColor = System.Drawing.Color.White;
             this.panelFooter1.BorderColor = System.Drawing.Color.Transparent;
             this.panelFooter1.BorderRadius = 12;
             this.panelFooter1.BorderSize = 0;

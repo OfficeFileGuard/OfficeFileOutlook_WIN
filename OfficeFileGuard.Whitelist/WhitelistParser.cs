@@ -21,8 +21,16 @@ namespace OfficeFileGuard.Whitelist
         public IReadOnlyList<string> Domains { get; }   // domini validi (normalizzati)
         public IReadOnlyList<WhitelistError> Errors { get; }    // errori
         public bool IsValid => Errors.Count == 0;
+
         public WhitelistParseResult(IReadOnlyList<string> domains, IReadOnlyList<WhitelistError> errors)
         { Domains = domains; Errors = errors; }
+
+        /// <summary>true se il dominio, dopo normalizzazione, è tra quelli in whitelist.</summary>
+        public bool IsInWhitelist(string domain)
+        {
+            return WhitelistParser.TryNormalize(domain, out string normalized, out _)
+                   && Domains.Contains(normalized);
+        }
     }
 
 

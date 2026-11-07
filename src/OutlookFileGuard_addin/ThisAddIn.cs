@@ -14,26 +14,27 @@
    - Debug MessageBox calls remain in the code for testing and should be removed or gated by a debug flag.
 */
 
+using OfficeFileGuard.Whitelist;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using Outlook = Microsoft.Office.Interop.Outlook;
-using Office = Microsoft.Office.Core;
-
 using System.IO;
-using System.Windows.Forms;
+using System.Linq;
 //using Word = Microsoft.Office.Interop.Word;  //TODO: Verificare se serve
 using System.Runtime.InteropServices; // Necessario per ReleaseComObject
+using System.Text;
+using System.Windows.Forms;
+using System.Xml.Linq;
+using Office = Microsoft.Office.Core;
+using Outlook = Microsoft.Office.Interop.Outlook;
 
 
 namespace OutlookFileGuard_addin
-{
+{        
     public partial class ThisAddIn
     {
         //const string InternalDomain = "gmail.com";  // sostituito con funzione GetSenderDomainFromMailItem che acquisisce il dominio utente da Outlook Mail Item
 
+        private WhitelistParseResult _whitelist = WhitelistParser.Parse(string.Empty); // mai null
 
         /// <summary>
         /// get the sender SMTP domain from the 'FROM:' field of the current email
@@ -46,6 +47,7 @@ namespace OutlookFileGuard_addin
 
             // if the address is an Exchange (MAPI), must be resolved in SMTP using PropertyAccessor
             if (mailItem.SenderEmailType == "EX")
+            {
                 try
                 {
                     dynamic dynamicMailItem = mailItem; // casting (static) mailItem on a dynamic variable (dynamic is needed by VSTO)
@@ -63,6 +65,8 @@ namespace OutlookFileGuard_addin
                     // In case of any other error
                     System.Diagnostics.Debug.WriteLine($"Errore in SendUsingAccount: {ex.Message}");
                 }
+            }
+
 
             // Extracting domain from senderAddress
             int atIndex = senderAddress.LastIndexOf('@');
@@ -73,8 +77,38 @@ namespace OutlookFileGuard_addin
         }
 
 
+        /// <summary>
+        /// Initializes the add-in when it starts up by loading the whitelist and hooking the ItemSend event.
+        /// </summary>
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
+            //System.Windows.Forms.MessageBox.Show("STARTUP NUOVO - build test 1");
+            Log("Startup. Build: " + File.GetLastWriteTime(System.Reflection.Assembly.GetExecutingAssembly().Location) + ", Location: " + System.Reflection.Assembly.GetExecutingAssembly().Location);
+            
+            try
+            {
+                WhitelistStore whitelistStore = new WhitelistStore();           // percorso standard
+                string whitelistText = whitelistStore.LoadText();               // può lanciare un'eccezione
+                _whitelist = WhitelistParser.Parse(whitelistText);
+
+                Log($"Whitelist: {_whitelist.Domains.Count} domini validi, {_whitelist.Errors.Count} righe non valide");
+
+                System.Diagnostics.Debug.WriteLine($"Whitelist caricata da: {whitelistStore.FilePath}");
+                if (!_whitelist.IsValid)
+                {
+                    foreach (WhitelistError error in _whitelist.Errors)
+                    {
+                        System.Diagnostics.Debug.WriteLine(
+                            $"Errore whitelist alla riga {error.Line}: {error.Reason}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Se ci sono errori di lettura della whitelist.txt, uso la lista vuota,
+                _whitelist = WhitelistParser.Parse(string.Empty);
+                System.Diagnostics.Debug.WriteLine($"Whitelist non letta: {ex.Message}");
+            }
             // Hooking the function Application_ItemSend to the ItemSend event (fired by Outlook just before sending an email)
             Application.ItemSend += Application_ItemSend;
         }
@@ -85,7 +119,7 @@ namespace OutlookFileGuard_addin
             //    must run when Outlook shuts down, see https://go.microsoft.com/fwlink/?LinkId=506785
         }
 
-        private void Application_ItemSend(object Item, ref bool Cancel)
+
         /// <summary>
         /// Main method of this Plugin
         /// here happen:
@@ -95,10 +129,11 @@ namespace OutlookFileGuard_addin
         ///  - and if there are private attachments
         ///  - then warn the user asking to confirm sending
         /// </summary>
+        private void Application_ItemSend(object Item, ref bool Cancel)
         {
             try 
             {
-                System.Windows.Forms.MessageBox.Show("ITEMSEND HIT");
+                DebugAlert("ITEMSEND HIT");
                 if (Item is Outlook.MailItem mailItem)  // checking if the item being sent is an email
                 {
                     Cancel = false; // this row could be deleted: Cancel = false by default
@@ -122,10 +157,10 @@ namespace OutlookFileGuard_addin
         }
 
 
-        private bool AreExternalRecipientsPresent(Outlook.MailItem mailItem, string internalDomain)
         /// <summary>
-        /// Verify if mailItem includes external domains (domains different from internalDomain)
+        /// Verify if mailItem includes external domains (domains different from internalDomain or not included in whitelist)
         /// </summary>
+        private bool AreExternalRecipientsPresent(Outlook.MailItem mailItem, string internalDomain)
         {
             foreach (Outlook.Recipient recipient in mailItem.Recipients)
             {
@@ -138,8 +173,16 @@ namespace OutlookFileGuard_addin
                         Outlook.PropertyAccessor pa = recipient.PropertyAccessor;
                         string emailAddress = pa.GetProperty("http://schemas.microsoft.com/mapi/proptag/0x39FE001E").ToString();  // Always returns SMTP address
 
-                        // Se l'indirizzo SMTP NON finisce con il dominio interno, è esterno.
-                        if (!emailAddress.EndsWith($"@{internalDomain}", StringComparison.OrdinalIgnoreCase)) return true; // at the first external address found, return true
+                        // Se l'indirizzo SMTP NON finisce con il dominio interno AND non è nella whitelist, è esterno.
+                        string recipientDomain = emailAddress.Substring(emailAddress.LastIndexOf('@') + 1);
+
+                        DebugLog($"Destinatario: {emailAddress} | dominio: {recipientDomain} | stesso dominio del mittente ({internalDomain}): "
+                            + emailAddress.EndsWith($"@{internalDomain}", StringComparison.OrdinalIgnoreCase)
+                            + " | in whitelist: " + _whitelist.IsInWhitelist(recipientDomain));
+
+                        if (!emailAddress.EndsWith($"@{internalDomain}", StringComparison.OrdinalIgnoreCase)
+                            && !(_whitelist.IsInWhitelist(recipientDomain))
+                            ) return true; // at the first external address found, return true
                     }
                     else return true;  // if recipient address is not resolved, consider it as external by default
                 }
@@ -193,6 +236,28 @@ namespace OutlookFileGuard_addin
             return result == DialogResult.Yes;
             */
         }
+
+
+        private static void Log(string message)
+        {
+            try
+            {
+                string dir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "OfficeFileGuard");
+                Directory.CreateDirectory(dir);
+                File.AppendAllText(Path.Combine(dir, "addin.log"),
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  " + message + Environment.NewLine);
+            }
+            catch { /* butto via qualsiasi eccezione: il log non deve mai rompere l'add-in */ }
+        }
+
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void DebugLog(string message) => Log("[debug] " + message);
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void DebugAlert(string text) => System.Windows.Forms.MessageBox.Show(text);
 
 
         #region VSTO generated code

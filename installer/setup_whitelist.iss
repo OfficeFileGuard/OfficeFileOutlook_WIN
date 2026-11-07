@@ -56,6 +56,7 @@ Source: "{#SourceBase}\OfficeFileGuard.Whitelist\bin\Release\OfficeFileGuard.Whi
 
 ; Outlook add-in
 Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\OutlookFileGuard_addin.dll"; DestDir: "{app}\addin"; Flags: ignoreversion
+Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\OfficeFileGuard.Whitelist.dll"; DestDir: "{app}\addin"; Flags: ignoreversion
 Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\OutlookFileGuard_addin.dll.manifest"; DestDir: "{app}\addin"; Flags: ignoreversion
 Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\OutlookFileGuard_addin.vsto"; DestDir: "{app}\addin"; Flags: ignoreversion
 Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\CrocoOfficeFileGuard.Core.dll"; DestDir: "{app}\addin"; Flags: ignoreversion
@@ -63,6 +64,7 @@ Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\DocumentFormat
 Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\DocumentFormat.OpenXml.Framework.dll"; DestDir: "{app}\addin"; Flags: ignoreversion
 Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\Microsoft.Office.Tools.Common.v4.0.Utilities.dll"; DestDir: "{app}\addin"; Flags: ignoreversion
 Source: "{#SourceBase}\src\OutlookFileGuard_addin\bin\x64\Release\Microsoft.Office.Tools.Outlook.v4.0.Utilities.dll"; DestDir: "{app}\addin"; Flags: ignoreversion
+
 
 ; QuickStart e License
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
